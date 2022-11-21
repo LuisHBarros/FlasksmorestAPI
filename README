@@ -12,7 +12,7 @@ https://marshmallow.readthedocs.io/
 secrets.SystemRandom().getrandbits(128) -> Gera um hash aleatório de 128 bits.
 
 Estudar migração de dados -> Flask-Migrate --- comando para efetuar as migrações (executa-las em ordem ( a segunda depois de excluir o banco de dados)) -> flask db init, flask db migrate, flask db upgrade
-Para atualizar as migracoes -> flask db migrate, flask db upgrade
+Para atualizar as migracoes -> flask db stamp head, flask db migrate, flask db upgrade
 
 Usar ElephantSQL para rostear o banco de dados
 
