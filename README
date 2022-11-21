@@ -15,3 +15,12 @@ Estudar migração de dados -> Flask-Migrate --- comando para efetuar as migraç
 Para atualizar as migracoes -> flask db migrate, flask db upgrade
 
 Usar ElephantSQL para rostear o banco de dados
+
+
+-----------------------------------------------------------------DOCUMENTAÇÃO--------------------------------------------------------------------------------------
+
+A presente API foi implementada usando Flask, flasksmorest, PostgreSQL, migração de dados, e um sistema JWT para efetuar cadastro, login e autenticação da aplicação, além da auto-documentação (graças ao swagger)
+Essa API foi construida com base no curso  "REST APIs with Flask and Python in 2022", da plataforma Udemy.
+Ainda preciso aprimorar meus conhecimentos para produzir API's mais poderosas utilizando Python ( em especial a segurança em Autenticação, coisa que pretendo me aprofundar mais )
+
+Link para implementação no render.com -> https://flask-smorest-api-kyms.onrender.com/swagger-ui
