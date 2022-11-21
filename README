@@ -1,4 +1,4 @@
-ANOTAÇÕES PÓS CURSO
+ANOTAÇÕES PESSOAIS PÓS CURSO
 Link do curso https://www.udemy.com/course/rest-api-flask-and-python/?couponCode=REST_EBOOK_NOV
 
 rodar com -> docker run -dp 5000:5000 -w /app -v "\c\Users\luish\Desktop\flask curso API" flask-smorest-api
