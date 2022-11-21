@@ -1,0 +1,14 @@
+rodar com -> docker run -dp 5000:5000 -w /app -v "\c\Users\luish\Desktop\flask curso API" flask-smorest-api
+
+Estudar mais SQLAlchemy (em especial as relações um para muitos e muitos para muitos) e Marshmallow(em especial os schemas)
+
+https://docs.sqlalchemy.org/en/14/
+
+https://marshmallow.readthedocs.io/
+
+secrets.SystemRandom().getrandbits(128) -> Gera um hash aleatório de 128 bits.
+
+Estudar migração de dados -> Flask-Migrate --- comando para efetuar as migrações (executa-las em ordem ( a segunda depois de excluir o banco de dados)) -> flask db init, flask db migrate, flask db upgrade
+Para atualizar as migracoes -> flask db migrate, flask db upgrade
+
+Usar ElephantSQL para rostear o banco de dados
