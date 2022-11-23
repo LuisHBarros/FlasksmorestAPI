@@ -5,7 +5,7 @@ rodar com -> docker run -dp 5000:5000 -w /app -v "\c\Users\luish\Desktop\flask c
 
 Estudar mais SQLAlchemy (em especial as relações um para muitos e muitos para muitos) e Marshmallow(em especial os schemas)
 
-https://docs.sqlalchemy.org/en/14/
+https://flask-sqlalchemy.palletsprojects.com/en/2.x/
 
 https://marshmallow.readthedocs.io/
 
