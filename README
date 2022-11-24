@@ -16,6 +16,7 @@ Para atualizar as migracoes -> flask db stamp head, flask db migrate, flask db u
 
 Usar ElephantSQL para rostear o banco de dados
 
+Estudar L10n e i80n -> Localização e internacionalização
 
 -----------------------------------------------------------------DOCUMENTAÇÃO--------------------------------------------------------------------------------------
 
