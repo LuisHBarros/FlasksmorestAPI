@@ -13,3 +13,8 @@ class ItemModel(db.Model):
     )
     store = db.relationship("StoreModel", back_populates='items')
     tags = db.relationship("TagModel", back_populates="items", secondary="items_tags")
+    
+    @classmethod    
+    def find_by_name(self, item_data):
+        return self.query.filter(ItemModel.name == item_data['name']).first()
+    

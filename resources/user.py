@@ -1,3 +1,4 @@
+import traceback
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from passlib.hash import pbkdf2_sha256
@@ -5,10 +6,12 @@ from flask_jwt_extended import (create_access_token,
                                 get_jwt,jwt_required,
                                 create_refresh_token,
                                 get_jwt_identity)
+from libs.strings import gettext
+from mailgun import MailGunException
 from blocklist import BLOCKLIST
-from db import db
 from models import UserModel
 from schemas import UserSchema
+from models import ConfirmationModel
 
 
 blp = Blueprint("Users", "users", description="Operations on users")
@@ -18,17 +21,34 @@ blp = Blueprint("Users", "users", description="Operations on users")
 class UserRegister(MethodView):
     @blp.arguments(UserSchema)
     def post(self, user_data):
-        if UserModel.query.filter(UserModel.username == user_data["username"]).first():
-            abort(409, message= "A user with that username already exists")
-            
+        if UserModel.find_by_username(user_data):
+            abort(409, message= gettext("user_username_exists"))
+        
+        # if UserModel.query.filter(UserModel.email == user_data["email"]).first():
+        if UserModel.find_by_email(user_data):
+            abort(409, message= gettext("user_email_exists"))
+              
+        
         user = UserModel(
             username = user_data["username"],
-            password = pbkdf2_sha256.hash(user_data["password"])
+            password = pbkdf2_sha256.hash(user_data["password"]),
+            email = user_data["email"]
         )
-        db.session.add(user)
-        db.session.commit()
+        try:
+            user.save_db()
+            confirmation = ConfirmationModel(user.id)
+            confirmation.save_db()
+            print(confirmation.id)
+            user.send_confirmation_email(confirmation.id)
+            return ({"id": user.id, "message": gettext("user_registered")})
+        except MailGunException as e:
+            user.delete_db()
+            return {"message": str(e)}, 500
+        except:
+            traceback.print_exc()
+            user.delete_db()
+            abort (500, message=gettext("user_error_creating"))
         
-        return {"message": "User created successfully"}, 201
     
     
 @blp.route("/user/<int:user_id>")
@@ -47,9 +67,8 @@ class User(MethodView):
     
     def delete(self, user_id):
         user = UserModel.query.get_or_404(user_id)
-        db.session.delete(user)
-        db.session.commit()
-        return {"message": "User deleted"}, 200
+        user.delete_db()
+        return {"message": gettext("user_deleted")}, 200
     
     
 @blp.route("/login")
@@ -59,13 +78,14 @@ class UserLogin(MethodView):
         user = UserModel.query.filter(
             UserModel.username == user_data["username"]
         ).first()
-
         if user and pbkdf2_sha256.verify(user_data["password"], user.password):
-            access_token = create_access_token(identity=user.id, fresh=True)
-            refresh_token = create_refresh_token(user.id)
-            return {"access_token": access_token, "refresh_token": refresh_token}, 200
-
-        abort(401, message="Invalid credentials.")
+            confirmation = user.most_recent_confirmation
+            if confirmation and confirmation.confirmation:
+                access_token = create_access_token(identity=user.id, fresh=True)
+                refresh_token = create_refresh_token(user.id)
+                return {"access_token": access_token, "refresh_token": refresh_token, "id" : user.id}, 200
+            return {"message": gettext("user_not_confirmed").format(user.email)}, 400
+        abort(401, message=gettext("user_invalid_credentials"))
 
         
 @blp.route("/logout")
@@ -74,7 +94,7 @@ class UserLogout(MethodView):
     def post(self):
         jti = get_jwt()["jti"]
         BLOCKLIST.add(jti)
-        return {"message": "Sucessfully logged out"}, 200
+        return {"message": gettext("user_logged_out")}, 200
     
 @blp.route("/refresh")
 class TokenRefresh(MethodView):
@@ -84,4 +104,12 @@ class TokenRefresh(MethodView):
         new_token = create_access_token(identity=current_user, fresh=False)
         jti = get_jwt()["jti"]
         BLOCKLIST.add(jti)
-        return {"acess_token": new_token}
+        return {"access_token": new_token}
+
+#
+@blp.route("/get_id_by_email/<string:user_email>")
+class get_id_by_email(MethodView):
+    """DELETE THIS BEFORE DEPLOY"""
+    def post(self, user_email):
+        user = UserModel.query.filter(UserModel.email == user_email).first()
+        return {"id": user.id}, 200

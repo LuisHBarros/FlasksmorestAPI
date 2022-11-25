@@ -1,7 +1,7 @@
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from sqlalchemy.exc import SQLAlchemyError
-
+from libs.strings import gettext
 from db import db
 from models import TagModel, StoreModel, ItemModel
 from schemas import TagSchema, TagAndItemSchema
@@ -19,7 +19,7 @@ class TagsInStore(MethodView):
     @blp.response(201, TagSchema)
     def post(self, tag_data, store_id):
         if TagModel.query.filter(TagModel.store_id == store_id).first():
-            abort(400, message="A tag with that name already exists in that store")
+            abort(400, message=gettext("tag_store_exists"))
             
         tag = TagModel(**tag_data, store_id=store_id)
         
@@ -41,7 +41,7 @@ class LinkTagsToItem(MethodView):
         item = ItemModel.query.get_or_404(item_id)
         tag = TagModel.query.get_or_404(tag_id)
         if item.store.id != tag.store.id:
-            abort(400, message="Make sure item and tag belong to the same store before linking.")
+            abort(400, message="tag_and_item_in_same_store")
         
         item.tags.append(tag)
         
@@ -49,7 +49,7 @@ class LinkTagsToItem(MethodView):
             db.session.add(item)
             db.session.commit()
         except SQLAlchemyError:
-            abort(500, message="An error occurred while inserting the tag.")
+            abort(500, message="")
         return tag
     
     @blp.response(200, TagAndItemSchema)
@@ -57,7 +57,7 @@ class LinkTagsToItem(MethodView):
         item = ItemModel.query.get_or_404(item_id)
         tag = ItemModel.query.get_or_404(tag_id)
         if item.store.id != tag.store.id:
-            abort(400, message="Make sure item and tag belong to the same store before linking.")
+            abort(400, message=gettext("tag_error_insert"))
 
         item.tags.remove(tag)
         
@@ -93,6 +93,6 @@ class Tag(MethodView):
         if not tag.items:
             db.session.delete(tag)
             db.session.commit()
-            return {"message": "Tag deleted successfully"}
+            return {"message": gettext("tag_deleted")}
         abort(400,
-              message="Could not delete tag. Make sure tag is not associated with any items, then try again.")
+              message=gettext("tag_not_empty"))

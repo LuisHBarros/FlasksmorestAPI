@@ -3,7 +3,7 @@ from flask import request
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
-
+from libs.strings import gettext
 from db import db
 from models import StoreModel
 from schemas import StoreSchema
@@ -19,10 +19,12 @@ class Store(MethodView):
     
     def delete(cls, store_id):
         store = StoreModel.query.get_or_404(store_id)
-        db.session.delete(store)
-        db.session.commit()
-        return {"message" : "Store deleted successfully"}, 200
-
+        try:
+            db.session.delete(store)
+            db.session.commit()
+            return {"message" : gettext("store_deleted")}, 200
+        except SQLAlchemyError:
+            abort(500, message=gettext("store_error_inserting"))
 
 
 @blp.route("/store")
@@ -41,9 +43,9 @@ class StoreList(MethodView):
                 db.session.commit()
             except IntegrityError:
                 abort(
-                    400, "A store with that name already exists."
+                    400, message=gettext("store_name_exists")
                 )
             except SQLAlchemyError:
-                abort(500, message="An error occurred creating the store.")
+                abort(500, message=gettext("store_error_inserting"))
             return store
 

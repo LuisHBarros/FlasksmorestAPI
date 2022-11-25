@@ -10,6 +10,7 @@ from resources.item import blp as ItemBlueprint
 from resources.store import blp as StoreBlueprint
 from resources.tag import blp as TagBlueprint
 from resources.user import blp as UserBlueprint
+from resources.confirmation import blp as ConfirmationBlueprint
 import os
 from dotenv import load_dotenv
 
@@ -32,7 +33,7 @@ def create_app(db_url=None):
     migrate = Migrate(app, db)
     api = Api(app)
     
-    app.config["JWT_SECRET_KEY"] = str(secrets.SystemRandom().getrandbits(128))
+    app.config["JWT_SECRET_KEY"] = os.getenv('APP_SECRET_KEY')
     app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
     app.config["JWT_REFRESH_TOKEN_EXPIRES"] = timedelta(days=7)
     jwt = JWTManager(app)
@@ -41,31 +42,35 @@ def create_app(db_url=None):
     def check_if_token_in_blocklist(jwt_header, jwt_payload):
         return jwt_payload["jti"] in BLOCKLIST
     
-    @jwt.additional_claims_loader
-    def add_claims_to_jwt(identity):
-        if identity == 1:
-            return {"is_admin": True}
-        return {"is_admin": False}
+    '''
+        Error handling than not more useful
+    '''
     
-    @jwt.expired_token_loader
-    def expired_token_callback(jwt_header, jwt_payload):
-        return jsonify({"message": "The token has expired.",
-                        "error" : "token expired"}), 401
+    # @jwt.additional_claims_loader
+    # def add_claims_to_jwt(identity):
+    #     if identity == 1:
+    #         return {"is_admin": True}
+    #     return {"is_admin": False}
+    
+    # @jwt.expired_token_loader
+    # def expired_token_callback(jwt_header, jwt_payload):
+    #     return jsonify({"message": "The token has expired.",
+    #                     "error" : "token expired"}), 401
 
-    @jwt.invalid_token_loader
-    def invalid_token_callback(error):
-        return jsonify({"message": "Signature verification failed.",
-                        "error" : "Invalid token" }), 401
+    # @jwt.invalid_token_loader
+    # def invalid_token_callback(error):
+    #     return jsonify({"message": "Signature verification failed.",
+    #                     "error" : "Invalid token" }), 401
 
-    @jwt.unauthorized_loader
-    def missing_token_callback(error):
-        return jsonify({"message": "Request does not contain an access token.",
-                        "error" : "authorization required"}), 401
+    # @jwt.unauthorized_loader
+    # def missing_token_callback(error):
+    #     return jsonify({"message": "Request does not contain an access token.",
+    #                     "error" : "authorization required"}), 401
 
-    @jwt.needs_fresh_token_loader
-    def token_not_fresh_callback(jwt_header, jwt_payload):
-        return jsonify({"message": "The token is not fresh", 
-                        "error":"fresh_token_required"}), 401
+    # @jwt.needs_fresh_token_loader
+    # def token_not_fresh_callback(jwt_header, jwt_payload):
+    #     return jsonify({"message": "The token is not fresh", 
+    #                     "error":"fresh_token_required"}), 401
 
 
 
@@ -73,5 +78,6 @@ def create_app(db_url=None):
     api.register_blueprint(StoreBlueprint)
     api.register_blueprint(TagBlueprint)
     api.register_blueprint(UserBlueprint)
+    api.register_blueprint(ConfirmationBlueprint)
 
     return app
